@@ -1,0 +1,24 @@
+no type constraint results:
+
+metric:			 MRR 		 MR 		 hit@10 	 hit@3  	 hit@1 
+
+0.00405041
+0.0113511
+0.00770077
+
+
+0.00425042
+0.0121512
+0.00820082
+type constraint results:
+
+metric:			 MRR 		 MR 		 hit@10 	 hit@3  	 hit@1 
+
+1
+1
+1
+
+
+1
+1
+1
