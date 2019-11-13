@@ -196,7 +196,7 @@ void test_link_prediction() {
     r_filter_tot /= testTotal;
     r3_filter_tot /= testTotal;
     r1_filter_tot /= testTotal;
-    const char *path = "./masterthesis/dbpediaResults/linkPredictionResults.txt";
+    const char *path = "./masterthesis/dbpediaResultsSample/TransE/experiment/linkPredictionResults.txt";
     ofstream resultfile(path);
     if(resultfile.is_open()) {
       resultfile<<("no type constraint results:\n")<<endl;

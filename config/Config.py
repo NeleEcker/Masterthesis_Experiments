@@ -283,7 +283,9 @@ class Config(object):
 		self.graph = tf.Graph()
 		tf.reset_default_graph()
 		with self.graph.as_default():
-			self.sess = tf.Session()
+			config = tf.ConfigProto()
+			config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
+			self.sess = tf.Session(config=config)
 			with self.sess.as_default():
 				initializer = tf.contrib.layers.xavier_initializer(uniform = True)
 				with tf.variable_scope("model", reuse=None, initializer = initializer):
@@ -331,7 +333,7 @@ class Config(object):
 					patience, min_delta = self.early_stopping
 					best_loss = np.finfo('float32').max
 					wait_steps = 0
-				file = open("./masterthesis/dbpediaResults/generalTimes.txt", "w+");
+				file = open("./masterthesis/dbpediaResultsSample/TransE/trueFalse2000Runs/generalTimes.txt", "w+");
 				for times in range(self.train_times):
 					loss = 0.0
 					t_init = time.time()
@@ -375,8 +377,8 @@ class Config(object):
 						self.lib.getTailBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
 						res = self.test_step(self.test_h, self.test_t, self.test_r)
 						self.lib.testTail(res.__array_interface__['data'][0])
-						#if self.log_on:
-						#	print(times)
+						if times % 100 == 0:
+							print(times)
 					self.lib.test_link_prediction()
 				if self.test_triple_classification:
 					self.lib.getValidBatch(self.valid_pos_h_addr, self.valid_pos_t_addr, self.valid_pos_r_addr, self.valid_neg_h_addr, self.valid_neg_t_addr, self.valid_neg_r_addr)

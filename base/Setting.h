@@ -5,6 +5,9 @@
 #include <cstring>
 #include <cstdio>
 #include <string>
+#include <unordered_map>
+#include <map>
+#include "Triple.h"
 
 std::string inPath = "../data/FB15K/";
 std::string outPath = "../data/FB15K/";
@@ -54,6 +57,8 @@ INT testTotal = 0;
 INT trainTotal = 0;
 INT validTotal = 0;
 INT diffTotal = 0;
+std::unordered_map<long int, Triple> headMap;
+std::unordered_map<long int, Triple> tailMap;
 
 extern "C"
 INT getEntityTotal() {
@@ -88,6 +93,16 @@ INT getValidTotal() {
 extern "C"
 INT getDiffTotal() {
 	return diffTotal;
+}
+
+extern "C"
+std::unordered_map<long int, Triple> getHeadMap() {
+	return headMap;
+}
+
+extern "C"
+std::unordered_map<long int, Triple> getTailMap() {
+	return tailMap;
 }
 /*
 ============================================================

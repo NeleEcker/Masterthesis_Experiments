@@ -169,6 +169,8 @@ void importNegativeSamples() {
 		tmp = fscanf(fin, "%ld", &trueNegList[i].h);
 		tmp = fscanf(fin, "%ld", &trueNegList[i].t);
 		tmp = fscanf(fin, "%ld", &trueNegList[i].r);
+		headMap[trueNegList[i].h] = trueNegList[i];
+		tailMap[trueNegList[i].t] = trueNegList[i];
 	}
 	fclose(fin);
 	std::sort(trueNegList, trueNegList + diffTotal, Triple::cmp_head);
