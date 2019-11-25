@@ -9,8 +9,8 @@
 #include <map>
 #include "Triple.h"
 
-std::string inPath = "../data/FB15K/";
-std::string outPath = "../data/FB15K/";
+std::string inPath = "../masterthesis/DBPedia500K/";
+std::string outPath = "../masterthesis/DBPedia500K/";
 
 extern "C"
 void setInPath(char *path) {

@@ -11,7 +11,7 @@ con.set_in_path("./masterthesis/DBPedia500K/")
 con.set_test_link_prediction(True)
 con.set_test_triple_classification(False)
 con.set_work_threads(8)
-con.set_train_times(2000)
+con.set_train_times(1000)
 con.set_nbatches(500)
 con.set_alpha(0.001)
 con.set_margin(1.0)
@@ -23,9 +23,9 @@ con.set_opt_method("SGD")
 con.set_true_negative_triples(True)
 
 #Models will be exported via tf.Saver() automatically.
-con.set_export_files("./masterthesis/dbpediaResultsSample/TransE/trueFalse2000Runs/model.vec.tf", 0)
+con.set_export_files("./masterthesis/dbpediaResultsSample/TransE/experiment/model.vec.tf", 0)
 #Model parameters will be exported to json files automatically.
-con.set_out_files("./masterthesis/dbpediaResultsSample/TransE/trueFalse2000Runs/embedding.vec.json")
+con.set_out_files("./masterthesis/dbpediaResultsSample/TransE/experiment/embedding.vec.json")
 #Initialize experimental settings.
 con.init()
 print("I finished the initalization")

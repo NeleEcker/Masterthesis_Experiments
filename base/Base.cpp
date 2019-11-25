@@ -1,3 +1,4 @@
+#include <Python.h>
 #include "Setting.h"
 #include "Random.h"
 #include "Reader.h"
@@ -84,6 +85,92 @@ bool headOrTailInNegativeSample(INT head, INT tail) {
 		}
 	}
 	return true;
+}
+
+INT* performLinkPredictionForCorruption(INT tail, INT rel) {
+	// Initialize the Python interpreter.
+	Py_Initialize();
+	// Create some Python objects that will later be assigned values.
+	PyObject *pName, *pModule, *pDict, *pFunc, *pArgs, *pValue;
+	// Convert the file name to a Python string.
+	pName = PyString_FromString("Config");
+	// Import the file as a Python module.
+	pModule = PyImport_Import(pName);
+	// Create a dictionary for the contents of the module.
+	pDict = PyModule_GetDict(pModule);
+	// Get the add method from the dictionary.
+	pFunc = PyDict_GetItemString(pDict, "predict_head_entity"); //braucht als übergabeparameter t, r und k
+	// Create a Python tuple to hold the arguments to the method.
+	pArgs = PyTuple_New(3);
+	pValue = PyInt_FromLong(tail);// -> convert the tail key
+	PyTuple_SetItem(pArgs, 0, pValue);
+	pValue = PyInt_FromLong(rel);// -> convert the relation key
+	PyTuple_SetItem(pArgs, 1, pValue);
+	pValue = PyInt_FromLong(1);// -> we only want the first element that is predicted
+	PyTuple_SetItem(pArgs, 2, pValue);
+	// Call the function with the arguments.
+	PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
+	// Print a message if calling the method failed.
+	if(pResult == NULL)
+		printf("Calling the add method failed.\n");
+		// Convert the result to a long from a Python object.
+	long result = PyInt_AsLong(pResult);
+	INT* predictedHead = (long int*) (INT) result;
+	// Destroy the Python interpreter.
+	Py_Finalize();
+	return predictedHead;
+}
+
+void* getBatchWithNewCorruption(void* con) {
+	Parameter *para = (Parameter *)(con);
+	INT id = para -> id;
+	INT *batch_h = para -> batch_h;
+	INT *batch_t = para -> batch_t;
+	INT *batch_r = para -> batch_r;
+	REAL *batch_y = para -> batch_y;
+	INT batchSize = para -> batchSize;
+	INT negRate = para -> negRate;
+	INT negRelRate = para -> negRelRate;
+	INT headBatchFlag = para -> headBatchFlag;
+	INT lef, rig;
+	if (batchSize % workThreads == 0) {
+		lef = id * (batchSize / workThreads);
+		rig = (id + 1) * (batchSize / workThreads);
+	} else {
+		lef = id * (batchSize / workThreads + 1);
+		rig = (id + 1) * (batchSize / workThreads + 1);
+		if (rig > batchSize) rig = batchSize;
+	}
+	REAL prob = 500;
+	INT last = batchSize;
+	for (INT batch = lef; batch < rig; batch++) {
+		//define true example
+		//perform link prediction
+		//if predicted head is different from true head -> set negative sample
+		//else -> get new triple from batch and do the same procedure
+		bool correctHeadPredicted = true;
+		INT* predictedHead;
+		while(correctHeadPredicted) {
+			INT i = rand_max(id, trainTotal);
+			batch_h[batch] = trainList[i].h;
+			batch_t[batch] = trainList[i].t;
+			batch_r[batch] = trainList[i].r;
+			batch_y[batch] = 1;
+			last = batchSize;
+
+			predictedHead = performLinkPredictionForCorruption(batch_t[batch], batch_r[batch]);
+			if(*predictedHead != batch_h[batch]) correctHeadPredicted = false;
+		}
+
+		batch_h[batch + last] = *predictedHead;
+		batch_t[batch + last] = batch_t[batch];
+		batch_r[batch + last] = batch_r[batch];
+		batch_y[batch + last] = -1;
+
+		last += batchSize;
+
+		pthread_exit(NULL);
+	}
 }
 
 void* getNegativeBatch(void* con) {
@@ -282,7 +369,7 @@ void* getBatch(void* con) {
 }
 
 extern "C"
-void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batchSize, INT negRate = 1, INT negRelRate = 0, INT headBatchFlag = 0) {
+void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batchSize, INT negRate = 1, INT negRelRate = 0, INT headBatchFlag = 0, INT epochNumber = 0) {
 	pthread_t *pt = (pthread_t *)malloc(workThreads * sizeof(pthread_t));
 	Parameter *para = (Parameter *)malloc(workThreads * sizeof(Parameter));
 	for (INT threads = 0; threads < workThreads; threads++) {
@@ -297,6 +384,11 @@ void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batch
 		para[threads].headBatchFlag = headBatchFlag;
 		if(trueNegativeSamplesFlag) {
 			pthread_create(&pt[threads], NULL, getNegativeBatch, (void*)(para+threads));
+			/*if(epochNumber > 1) {
+				pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
+			} else {
+				pthread_create(&pt[threads], NULL, getNegativeBatch, (void*)(para+threads));
+			}*/
 		} else {
 			pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
 		}

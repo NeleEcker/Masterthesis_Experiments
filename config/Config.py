@@ -14,7 +14,7 @@ class Config(object):
 	def __init__(self):
 		base_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '../release/Base.so'))
 		self.lib = ctypes.cdll.LoadLibrary(base_file)
-		self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
+		self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
 		self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 		self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 		self.lib.testHead.argtypes = [ctypes.c_void_p]
@@ -102,6 +102,7 @@ class Config(object):
 		if self.in_path != None:
 			self.lib.setInPath(ctypes.create_string_buffer(self.in_path.encode(), len(self.in_path) * 2))
 			self.lib.setBern(self.bern)
+			self.lib.setTrueNegativeSamplesFlag(self.true_negative_triples)
 			self.lib.setWorkThreads(self.workThreads)
 			self.lib.randReset()
 			self.lib.importTrainFiles()
@@ -209,8 +210,8 @@ class Config(object):
 		self.early_stopping = early_stopping
 
 	# call C function for sampling
-	def sampling(self):
-		self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_size, self.negative_ent, self.negative_rel)
+	def sampling(self, epochNumber):
+		self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_size, self.negative_ent, self.negative_rel, epochNumber)
 
 	# save model
 	def save_tensorflow(self):
@@ -333,12 +334,12 @@ class Config(object):
 					patience, min_delta = self.early_stopping
 					best_loss = np.finfo('float32').max
 					wait_steps = 0
-				file = open("./masterthesis/dbpediaResultsSample/TransE/trueFalse2000Runs/generalTimes.txt", "w+");
+				file = open("./masterthesis/dbpediaResultsSample/TransE/experiment/generalTimes.txt", "w+");
 				for times in range(self.train_times):
 					loss = 0.0
 					t_init = time.time()
 					for batch in range(self.nbatches):
-						self.sampling()
+						self.sampling(times)
 						loss += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
 					t_end = time.time()
 					if self.log_on:
