@@ -111,6 +111,7 @@ std::unordered_map<long int, Triple> getTailMap() {
 INT bernFlag = 0;
 INT crossSamplingFlag = 0;
 INT trueNegativeSamplesFlag = 0;
+INT negSampleVersion = 0;
 
 extern "C"
 void setBern(INT con) {
@@ -125,6 +126,11 @@ void setHeadTailCrossSampling(INT con){
 extern "C"
 void setTrueNegativeSamplesFlag(INT con) {
 	trueNegativeSamplesFlag = con;
+}
+
+extern "C"
+void setNegativeSampleVersion(INT con) {
+	negSampleVersion = con;
 }
 
 #endif

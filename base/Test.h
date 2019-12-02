@@ -196,24 +196,24 @@ void test_link_prediction() {
     r_filter_tot /= testTotal;
     r3_filter_tot /= testTotal;
     r1_filter_tot /= testTotal;
-    const char *path = "./masterthesis/dbpediaResultsSample/TransE/trueFalseVersion3/linkPredictionResults.txt";
-    ofstream resultfile(path);
-    if(resultfile.is_open()) {
-      resultfile<<("no type constraint results:\n")<<endl;
+    //const char *path = "./masterthesis/dbpediaResultsSample/TransE/trueFalseVersion3/linkPredictionResults.txt";
+    //ofstream resultfile(path);
+    //if(resultfile.is_open()) {
+      printf("no type constraint results:\n");
 
-      resultfile<<("metric:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n")<<endl;
-      resultfile<<("l(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", l_reci_rank, l_rank, l_tot, l3_tot, l1_tot)<<endl;
-      resultfile<<("r(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", r_reci_rank, r_rank, r_tot, r3_tot, r1_tot)<<endl;
-      resultfile<<("averaged(raw):\t\t %f \t %f \t %f \t %f \t %f \n",
-              (l_reci_rank+r_reci_rank)/2, (l_rank+r_rank)/2, (l_tot+r_tot)/2, (l3_tot+r3_tot)/2, (l1_tot+r1_tot)/2)<<endl;
-      resultfile<<("\n")<<endl;
-      resultfile<<("l(filter):\t\t %f \t %f \t %f \t %f \t %f \n", l_filter_reci_rank, l_filter_rank, l_filter_tot, l3_filter_tot, l1_filter_tot)<<endl;
-      resultfile<<("r(filter):\t\t %f \t %f \t %f \t %f \t %f \n", r_filter_reci_rank, r_filter_rank, r_filter_tot, r3_filter_tot, r1_filter_tot)<<endl;
-      resultfile<<("averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
-              (l_filter_reci_rank+r_filter_reci_rank)/2, (l_filter_rank+r_filter_rank)/2, (l_filter_tot+r_filter_tot)/2, (l3_filter_tot+r3_filter_tot)/2, (l1_filter_tot+r1_filter_tot)/2)<<endl;
-    } else {
+      printf("metric:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n");
+      printf("l(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", l_reci_rank, l_rank, l_tot, l3_tot, l1_tot);
+      printf("r(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", r_reci_rank, r_rank, r_tot, r3_tot, r1_tot);
+      printf("averaged(raw):\t\t %f \t %f \t %f \t %f \t %f \n",
+              (l_reci_rank+r_reci_rank)/2, (l_rank+r_rank)/2, (l_tot+r_tot)/2, (l3_tot+r3_tot)/2, (l1_tot+r1_tot)/2);
+      printf("\n");
+      printf("l(filter):\t\t %f \t %f \t %f \t %f \t %f \n", l_filter_reci_rank, l_filter_rank, l_filter_tot, l3_filter_tot, l1_filter_tot);
+      printf("r(filter):\t\t %f \t %f \t %f \t %f \t %f \n", r_filter_reci_rank, r_filter_rank, r_filter_tot, r3_filter_tot, r1_filter_tot);
+      printf("averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
+              (l_filter_reci_rank+r_filter_reci_rank)/2, (l_filter_rank+r_filter_rank)/2, (l_filter_tot+r_filter_tot)/2, (l3_filter_tot+r3_filter_tot)/2, (l1_filter_tot+r1_filter_tot)/2);
+    /*} else {
       cerr <<"Unable to open file";
-    }
+    }*/
 
 
     //type constrain
@@ -244,23 +244,23 @@ void test_link_prediction() {
     r3_filter_tot_constrain /= testTotal;
     r1_filter_tot_constrain /= testTotal;
 
-    if(resultfile.is_open()) {
-      resultfile<<("type constraint results:\n")<<endl;
+    //if(resultfile.is_open()) {
+      printf("type constraint results:\n");
 
-      resultfile<<("metric:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n")<<endl;
-      resultfile<<("l(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", l_reci_rank_constrain, l_rank_constrain, l_tot_constrain, l3_tot_constrain, l1_tot_constrain)<<endl;
-      resultfile<<("r(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", r_reci_rank_constrain, r_rank_constrain, r_tot_constrain, r3_tot_constrain, r1_tot_constrain)<<endl;
-      resultfile<<("averaged(raw):\t\t %f \t %f \t %f \t %f \t %f \n",
-              (l_reci_rank_constrain+r_reci_rank_constrain)/2, (l_rank_constrain+r_rank_constrain)/2, (l_tot_constrain+r_tot_constrain)/2, (l3_tot_constrain+r3_tot_constrain)/2, (l1_tot_constrain+r1_tot_constrain)/2)<<endl;
-      resultfile<<("\n")<<endl;
-      resultfile<<("l(filter):\t\t %f \t %f \t %f \t %f \t %f \n", l_filter_reci_rank_constrain, l_filter_rank_constrain, l_filter_tot_constrain, l3_filter_tot_constrain, l1_filter_tot_constrain)<<endl;
-      resultfile<<("r(filter):\t\t %f \t %f \t %f \t %f \t %f \n", r_filter_reci_rank_constrain, r_filter_rank_constrain, r_filter_tot_constrain, r3_filter_tot_constrain, r1_filter_tot_constrain)<<endl;
-      resultfile<<("averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
-              (l_filter_reci_rank_constrain+r_filter_reci_rank_constrain)/2, (l_filter_rank_constrain+r_filter_rank_constrain)/2, (l_filter_tot_constrain+r_filter_tot_constrain)/2, (l3_filter_tot_constrain+r3_filter_tot_constrain)/2, (l1_filter_tot_constrain+r1_filter_tot_constrain)/2)<<endl;
-    } else {
+      printf("metric:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n");
+      printf("l(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", l_reci_rank_constrain, l_rank_constrain, l_tot_constrain, l3_tot_constrain, l1_tot_constrain);
+      printf("r(raw):\t\t\t %f \t %f \t %f \t %f \t %f \n", r_reci_rank_constrain, r_rank_constrain, r_tot_constrain, r3_tot_constrain, r1_tot_constrain);
+      printf("averaged(raw):\t\t %f \t %f \t %f \t %f \t %f \n",
+              (l_reci_rank_constrain+r_reci_rank_constrain)/2, (l_rank_constrain+r_rank_constrain)/2, (l_tot_constrain+r_tot_constrain)/2, (l3_tot_constrain+r3_tot_constrain)/2, (l1_tot_constrain+r1_tot_constrain)/2);
+      printf("\n");
+      printf("l(filter):\t\t %f \t %f \t %f \t %f \t %f \n", l_filter_reci_rank_constrain, l_filter_rank_constrain, l_filter_tot_constrain, l3_filter_tot_constrain, l1_filter_tot_constrain);
+      printf("r(filter):\t\t %f \t %f \t %f \t %f \t %f \n", r_filter_reci_rank_constrain, r_filter_rank_constrain, r_filter_tot_constrain, r3_filter_tot_constrain, r1_filter_tot_constrain);
+      printf("averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
+              (l_filter_reci_rank_constrain+r_filter_reci_rank_constrain)/2, (l_filter_rank_constrain+r_filter_rank_constrain)/2, (l_filter_tot_constrain+r_filter_tot_constrain)/2, (l3_filter_tot_constrain+r3_filter_tot_constrain)/2, (l1_filter_tot_constrain+r1_filter_tot_constrain)/2);
+    /*} else {
       cerr<<"The file could not be opened";
     }
-    resultfile.close();
+    resultfile.close();*/
 }
 
 /*=====================================================================================

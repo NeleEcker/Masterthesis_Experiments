@@ -7,7 +7,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='7'
 #Input training files from benchmarks/FB15K/ folder.
 con = config.Config()
 #True: Input test files from the same folder.
-con.set_in_path("./masterthesis/DBPedia500K/")
+con.set_in_path("./masterthesis/DBPedia500KNew/")
 con.set_test_link_prediction(True)
 con.set_test_triple_classification(False)
 con.set_work_threads(8)
@@ -20,12 +20,12 @@ con.set_dimension(100)
 con.set_ent_neg_rate(1)
 con.set_rel_neg_rate(0)
 con.set_opt_method("SGD")
-con.set_true_negative_triples(True)
+con.set_true_negative_triples(False)
 
 #Models will be exported via tf.Saver() automatically.
-con.set_export_files("./masterthesis/dbpediaResultsSample/TransE/experiment/model.vec.tf", 0)
+con.set_export_files("./masterthesis/dbpediaResultsSampleNew/TransE/corruptFalse/model.vec.tf", 0)
 #Model parameters will be exported to json files automatically.
-con.set_out_files("./masterthesis/dbpediaResultsSample/TransE/experiment/embedding.vec.json")
+con.set_out_files("./masterthesis/dbpediaResultsSampleNew/TransE/corruptFalse/embedding.vec.json")
 #Initialize experimental settings.
 con.init()
 print("I finished the initalization")
