@@ -91,19 +91,30 @@ INT* performLinkPredictionForCorruption(INT tail, INT rel) {
 	printf("Python method was called\n");
 	// Initialize the Python interpreter.
 	Py_Initialize();
-	PyRun_SimpleString("import sys\\n");
+	printf("Initialize was done successfully");
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append");
+	//INT pyresult =PyRun_SimpleStringFlags("import Config.py", NULL);
+	//printf("%s:", pyresult);
+
+	//PyRun_SimpleString("print(\"Hello world\")");
+	/*PyRun_SimpleString("import sys\\n");
 	//PyRun_SimpleString("print(\"Hello world\")");
 	printf("works");
 	PyRun_SimpleString("sys.path.append(\"/usr/include/python3.5/\")");
-	printf("Python method was called1\n");
+	printf("Python method was called1\n");*/
 	// Create some Python objects that will later be assigned values.
 	PyObject *pName, *pModule, *pDict, *pFunc, *pArgs, *pValue;
 	printf("Python method was called2\n");
+	//printf("%s:", PyRun_SimpleString("import Config.py"));
 	// Convert the file name to a Python string.
 	pName = PyString_FromString("Config");
-	printf("Python method was called3\n");
+	printf("Python method was called3 pname: %d\n", pName);
+	Py_Finalize();
+	printf("This was done");
 	// Import the file as a Python module.
 	pModule = PyImport_Import(pName);
+	printf("module %s", pModule);
 	printf("Python method was called4\n");
 	// Create a dictionary for the contents of the module.
 	pDict = PyModule_GetDict(pModule);
@@ -180,7 +191,7 @@ void* getBatchWithNewCorruption(void* con) {
 			batch_r[batch] = trainList[i].r;
 			batch_y[batch] = 1;
 			last = batchSize;
-
+			printf("correctHeadpredicted: %d \n", correctHeadPredicted);
 			predictedHead = performLinkPredictionForCorruption(batch_t[batch], batch_r[batch]);
 			printf("PredictedHead: %d \n", *predictedHead);
 			if(*predictedHead != batch_h[batch]) correctHeadPredicted = false;
@@ -242,7 +253,6 @@ void* getNegativeBatch(void* con) {
 			if(trueNegativeSamplesFlag) {
 				Triple negTriple;
 
-				//in case V4 leads to better results change this to the way it is done in V4
 				if(headMap.find(batch_h[batch]) == headMap.end()) {
 					if(tailMap.find(batch_h[batch]) == tailMap.end()) {
 						if(headMap.find(batch_t[batch]) == headMap.end()) {
@@ -262,7 +272,7 @@ void* getNegativeBatch(void* con) {
 					negTriple = headMap.at(batch_h[batch]);
 
 				}
-
+				//printf("This was also reached, %d", negTriple.h);
 				batch_h[batch + last] = negTriple.h;
 				batch_t[batch + last] = negTriple.t;
 				batch_r[batch + last] = negTriple.r;
@@ -402,6 +412,13 @@ void* getBatch(void* con) {
 }
 
 extern "C"
+void callPython() {
+	//Py_Initialize();
+	PyRun_SimpleString("print(\"Hello world\")");
+	//Py_Finalize();
+}
+
+extern "C"
 void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batchSize, INT negRate = 1, INT negRelRate = 0, INT headBatchFlag = 0, INT epochNumber = 0) {
 	pthread_t *pt = (pthread_t *)malloc(workThreads * sizeof(pthread_t));
 	Parameter *para = (Parameter *)malloc(workThreads * sizeof(Parameter));
@@ -434,35 +451,86 @@ void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batch
 				pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
 				break;
 			case 5: //link prediction (python in c++)
-				pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
+				//pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
+				Py_InitializeEx(0);
+				printf("hi");
+				//PyRun_SimpleString("print(1)");
+				Py_Finalize();
+				printf("do something");
 				break;
 			default:
 				break;
 		}
-		//if(trueNegativeSamplesFlag) {
-			//pthread_create(&pt[threads], NULL, getNegativeBatch, (void*)(para+threads));
-			//if(epochNumber % 10 == 0) {
-				//printf("Epoch: %d \n", epochNumber);
-				//pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
-			/*} else {
-				printf("or this");
-				pthread_create(&pt[threads], NULL, getNegativeBatch, (void*)(para+threads));
-			}*/
-			/*if(epochNumber % 2 == 0 && epochNumber > 0) {
-				pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
-			} else {
-				pthread_create(&pt[threads], NULL, getNegativeBatch, (void*)(para+threads));
-			}*/
-		/*} else {
-			pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
-		}*/
-		pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
 	}
 	for (INT threads = 0; threads < workThreads; threads++)
 		pthread_join(pt[threads], NULL);
 	free(pt);
 	free(para);
 }
+
+/*extern "C"
+void samplingWithLinkPrediction(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batchSize, INT negRate = 1, INT negRelRate = 0, INT headBatchFlag = 0, INT epochNumber = 0, INT randomNumbers[], INT corruptedHeads[]) {
+	pthread_t *pt = (pthread_t *)malloc(workThreads * sizeof(pthread_t));
+	Parameter *para = (Parameter *)malloc(workThreads * sizeof(Parameter));
+	//printf("EpochNumber: %d\n", epochNumber);
+	for (INT threads = 0; threads < workThreads; threads++) {
+		para[threads].id = threads;
+		para[threads].batch_h = batch_h;
+		para[threads].batch_t = batch_t;
+		para[threads].batch_r = batch_r;
+		para[threads].batch_y = batch_y;
+		para[threads].batchSize = batchSize;
+		para[threads].negRate = negRate;
+		para[threads].negRelRate = negRelRate;
+		para[threads].headBatchFlag = headBatchFlag;
+
+		switch(negSampleVersion){
+			case 5: //link prediction (python in c++)
+				pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
+				break;
+			default:
+				break;
+		}
+	}
+	for (INT threads = 0; threads < workThreads; threads++)
+		pthread_join(pt[threads], NULL);
+	free(pt);
+	free(para);
+}*/
+
+/*void* getBatchWithNewCorruption2(void* con, INT rand, INT corruptedHead) {
+	Parameter *para = (Parameter *)(con);
+	INT id = para -> id;
+	INT *batch_h = para -> batch_h;
+	INT *batch_t = para -> batch_t;
+	INT *batch_r = para -> batch_r;
+	REAL *batch_y = para -> batch_y;
+	INT batchSize = para -> batchSize;
+	INT negRate = para -> negRate;
+	INT negRelRate = para -> negRelRate;
+	INT headBatchFlag = para -> headBatchFlag;
+	INT lef, rig;
+	if (batchSize % workThreads == 0) {
+		lef = id * (batchSize / workThreads);
+		rig = (id + 1) * (batchSize / workThreads);
+	} else {
+		lef = id * (batchSize / workThreads + 1);
+		rig = (id + 1) * (batchSize / workThreads + 1);
+		if (rig > batchSize) rig = batchSize;
+	}
+	REAL prob = 500;
+	INT last = batchSize;
+	INT counter = 1;
+	for (INT batch = lef; batch < rig; batch++) {
+			batch_h[batch + last] = negTriple.h;
+			batch_t[batch + last] = negTriple.t;
+			batch_r[batch + last] = negTriple.r;
+			batch_y[batch + last] = -1;
+
+			last += batchSize;
+		pthread_exit(NULL);
+	}
+}*/
 
 int main() {
 	importTrainFiles();

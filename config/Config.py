@@ -6,6 +6,7 @@ import time
 import datetime
 import ctypes
 import json
+import random
 
 class Config(object):
 	'''
@@ -15,6 +16,7 @@ class Config(object):
 		base_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '../release/Base.so'))
 		self.lib = ctypes.cdll.LoadLibrary(base_file)
 		self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
+		#self.lib.samplingWithLinkPrediction.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64*8, ctypes.c_int64*8]
 		self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 		self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 		self.lib.testHead.argtypes = [ctypes.c_void_p]
@@ -104,6 +106,7 @@ class Config(object):
 			self.lib.setBern(self.bern)
 			self.lib.setTrueNegativeSamplesFlag(self.true_negative_triples)
 			self.lib.setNegativeSampleVersion(self.neg_sample_version)
+			print(self.neg_sample_version)
 			self.lib.setWorkThreads(self.workThreads)
 			self.lib.randReset()
 			self.lib.importTrainFiles()
@@ -216,6 +219,9 @@ class Config(object):
 	# call C function for sampling
 	def sampling(self, epochNumber):
 		self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_size, self.negative_ent, self.negative_rel, 10 , epochNumber)
+
+	#def samplingWithLinkPrediction(self, epochNumber, randomNumbers, corruptedHeads):
+	#	self.lib.samplingWithLinkPrediction(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_size, self.negative_ent, self.negative_rel, 10 , epochNumber, randomNumbers, corruptedHeads)
 
 	# save model
 	def save_tensorflow(self):
@@ -338,11 +344,18 @@ class Config(object):
 					patience, min_delta = self.early_stopping
 					best_loss = np.finfo('float32').max
 					wait_steps = 0
-				file = open("./masterthesis/dbpediaResultsSample/TransD/trueFalse/generalTimes.txt", "w+");
+				file = open("./masterthesis/nellResults/Complex/corruptFalse/generalTimes.txt", "w+");
 				for times in range(self.train_times):
+					#self.lib.callPython()
+					#print(1)
 					loss = 0.0
 					t_init = time.time()
 					for batch in range(self.nbatches):
+						#if(self.negSampleVersion == 5):
+						#	randomNumbers = self.getRand(self.workThreads)
+						#	corruptedHeads = self.getPredictionForCorruption(randomNumbers)
+							#self.samplingWithLinkPrediction(times, randomNumbers, corruptedHeads)
+						#else :
 						self.sampling(times)
 						loss += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
 					t_end = time.time()
@@ -366,6 +379,25 @@ class Config(object):
 					self.save_tensorflow()
 				if self.out_path != None:
 					self.save_parameters(self.out_path)
+
+	def getRand(self, nThreads):
+		randomNumbers = []
+		for i in range(nThreads):
+			rand = random.randint(0, self.batch_size)
+			randomNumbers.append(rand)
+		return randomNumbers
+
+	def getPredictionForCorruption(self, aRandomNumbers):
+		corruptedHeads = []
+		for i in aRandomNumbers:
+			tail = self.batch_t[i]
+			relation = self.batch_r[i]
+			res = self.predict_head_entity(tail, relation, 2)
+			if(res[0] == self.batch_h[i]):
+				corruptedHeads.append(res[1])
+			else:
+				corruptedHeads.append(res[0])
+		return corruptedHeads
 
 	def test(self):
 		with self.graph.as_default():

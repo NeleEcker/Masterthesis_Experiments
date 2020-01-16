@@ -131,6 +131,7 @@ void setTrueNegativeSamplesFlag(INT con) {
 extern "C"
 void setNegativeSampleVersion(INT con) {
 	negSampleVersion = con;
+	printf("sample version set");
 }
 
 #endif
