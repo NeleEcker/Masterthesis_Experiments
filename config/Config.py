@@ -344,36 +344,66 @@ class Config(object):
 					patience, min_delta = self.early_stopping
 					best_loss = np.finfo('float32').max
 					wait_steps = 0
-				file = open("./masterthesis/nellResults/Complex/corruptFalse/generalTimes.txt", "w+");
-				for times in range(self.train_times):
-					#self.lib.callPython()
-					#print(1)
-					loss = 0.0
-					t_init = time.time()
-					for batch in range(self.nbatches):
-						#if(self.negSampleVersion == 5):
-						#	randomNumbers = self.getRand(self.workThreads)
-						#	corruptedHeads = self.getPredictionForCorruption(randomNumbers)
-							#self.samplingWithLinkPrediction(times, randomNumbers, corruptedHeads)
-						#else :
-						self.sampling(times)
-						loss += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
-					t_end = time.time()
-					if self.log_on:
-						print('Epoch: {}, loss: {}, time: {}'.format(times, loss, (t_end - t_init)))
-						line = ('{},{},{}\n'.format(times, loss, (t_end - t_init)))
-						file.write(line)
-					if self.exportName != None and (self.export_steps!=0 and times % self.export_steps == 0):
-						self.save_tensorflow()
-					if self.early_stopping is not None:
-						if loss + min_delta < best_loss:
-							best_loss = loss
-							wait_steps = 0
-						elif wait_steps < patience:
-							wait_steps += 1
-						else:
-							print('Early stopping. Losses have not been improved enough in {} times'.format(patience))
-							break
+				file = open("./masterthesis/nellResults/TransE/trueFalseV3correct/generalTimes.txt", "w+");
+				if self.neg_sample_version == 6:
+					self.set_neg_sample_version(0)
+					self.lib.setNegativeSampleVersion(self.neg_sample_version)
+					for times in range(self.train_times):
+						if times == 0.8*self.train_times:
+							self.set_neg_sample_version(4)
+							self.lib.setNegativeSampleVersion(self.neg_sample_version)
+						loss = 0.0
+						t_init = time.time()
+						for batch in range(self.nbatches):
+							self.sampling(times)
+							loss += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
+						t_end = time.time()
+						if self.log_on:
+							print('Epoch: {}, loss: {}, time: {}'.format(times, loss, (t_end - t_init)))
+							line = ('{},{},{}\n'.format(times, loss, (t_end - t_init)))
+							file.write(line)
+						if self.exportName != None and (self.export_steps!=0 and times % self.export_steps == 0):
+							self.save_tensorflow()
+						if self.early_stopping is not None:
+							if loss + min_delta < best_loss:
+								best_loss = loss
+								wait_steps = 0
+							elif wait_steps < patience:
+								wait_steps += 1
+							else:
+								print('Early stopping. Losses have not been improved enough in {} times'.format(patience))
+								break
+
+				else:
+					for times in range(self.train_times):
+						#self.lib.callPython()
+						#print(1)
+						loss = 0.0
+						t_init = time.time()
+						for batch in range(self.nbatches):
+							#if(self.negSampleVersion == 5):
+							#	randomNumbers = self.getRand(self.workThreads)
+							#	corruptedHeads = self.getPredictionForCorruption(randomNumbers)
+								#self.samplingWithLinkPrediction(times, randomNumbers, corruptedHeads)
+							#else :
+							self.sampling(times)
+							loss += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
+						t_end = time.time()
+						if self.log_on:
+							print('Epoch: {}, loss: {}, time: {}'.format(times, loss, (t_end - t_init)))
+							line = ('{},{},{}\n'.format(times, loss, (t_end - t_init)))
+							file.write(line)
+						if self.exportName != None and (self.export_steps!=0 and times % self.export_steps == 0):
+							self.save_tensorflow()
+						if self.early_stopping is not None:
+							if loss + min_delta < best_loss:
+								best_loss = loss
+								wait_steps = 0
+							elif wait_steps < patience:
+								wait_steps += 1
+							else:
+								print('Early stopping. Losses have not been improved enough in {} times'.format(patience))
+								break
 				file.close()
 				if self.exportName != None:
 					self.save_tensorflow()

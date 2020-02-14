@@ -7,6 +7,7 @@
 #include "Valid.h"
 #include <cstdlib>
 #include <pthread.h>
+#include <iostream>
 
 extern "C"
 void setInPath(char *path);
@@ -75,7 +76,7 @@ struct Parameter {
 };
 
 bool headOrTailInNegativeSample(INT head, INT tail) {
-	if(headMap.find(head) == headMap.end()) {
+	/*if(headMap.find(head) == headMap.end()) {
 		if(tailMap.find(head) == tailMap.end()) {
 			if(headMap.find(tail) == headMap.end()) {
 				if(tailMap.find(tail) == tailMap.end()) {
@@ -83,79 +84,33 @@ bool headOrTailInNegativeSample(INT head, INT tail) {
 				}
 			}
 		}
+	}*/
+	if(headMap.find(head) == headMap.end()) {
+		if(tailMap.find(tail) == tailMap.end()) {
+			return false;
+		}
 	}
 	return true;
 }
 
-INT* performLinkPredictionForCorruption(INT tail, INT rel) {
-	printf("Python method was called\n");
-	// Initialize the Python interpreter.
-	Py_Initialize();
-	printf("Initialize was done successfully");
-	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append");
-	//INT pyresult =PyRun_SimpleStringFlags("import Config.py", NULL);
-	//printf("%s:", pyresult);
+void* printArray(int arr[], int arraysize)
+{
+	char delim = ',';
 
-	//PyRun_SimpleString("print(\"Hello world\")");
-	/*PyRun_SimpleString("import sys\\n");
-	//PyRun_SimpleString("print(\"Hello world\")");
-	printf("works");
-	PyRun_SimpleString("sys.path.append(\"/usr/include/python3.5/\")");
-	printf("Python method was called1\n");*/
-	// Create some Python objects that will later be assigned values.
-	PyObject *pName, *pModule, *pDict, *pFunc, *pArgs, *pValue;
-	printf("Python method was called2\n");
-	//printf("%s:", PyRun_SimpleString("import Config.py"));
-	// Convert the file name to a Python string.
-	pName = PyString_FromString("Config");
-	printf("Python method was called3 pname: %d\n", pName);
-	Py_Finalize();
-	printf("This was done");
-	// Import the file as a Python module.
-	pModule = PyImport_Import(pName);
-	printf("module %s", pModule);
-	printf("Python method was called4\n");
-	// Create a dictionary for the contents of the module.
-	pDict = PyModule_GetDict(pModule);
-	printf("Python method was called5\n");
-	// Get the add method from the dictionary.
-	pFunc = PyDict_GetItemString(pDict, "predict_head_entity"); //braucht als übergabeparameter t, r und k
-	printf("Python method was called6\n");
-	// Create a Python tuple to hold the arguments to the method.
-	printf("Python method was called7\n");
-	pArgs = PyTuple_New(3);
-	printf("Python method was called8\n");
-	pValue = PyInt_FromLong(tail);// -> convert the tail key
-	printf("Python method was called9\n");
-	PyTuple_SetItem(pArgs, 0, pValue);
-	printf("Python method was called10\n");
-	pValue = PyInt_FromLong(rel);// -> convert the relation key
-	printf("Python method was called11\n");
-	PyTuple_SetItem(pArgs, 1, pValue);
-	printf("Python method was called12\n");
-	pValue = PyInt_FromLong(1);// -> we only want the first element that is predicted
-	printf("Python method was called13\n");
-	PyTuple_SetItem(pArgs, 2, pValue);
-	// Call the function with the arguments.
-	printf("Python method was called14\n");
-	PyObject* pResult = PyObject_CallObject(pFunc, pArgs);
-	// Print a message if calling the method failed.
-	if(pResult == NULL)
-		printf("Calling the add method failed.\n");
-		// Convert the result to a long from a Python object.
-	printf("Python method was called15\n");
-	long result = PyInt_AsLong(pResult);
-	printf("Python method was called16\n");
-	INT* predictedHead = (long int*) (INT) result;
-	printf("Python method was called17\n");
-	// Destroy the Python interpreter.
-	Py_Finalize();
-	printf("Python method was called18\n");
-	return predictedHead;
+	std::string s;
+	for (unsigned i = 0; i < arraysize; i++) {
+		if (i) {
+			s.push_back(delim);
+		}
+		s.push_back(arr[i] + '0');
+	}
+
+	std::cout << s;
+
+	return 0;
 }
 
-void* getBatchWithNewCorruption(void* con) {
+void* getTestBatch(void* con) {
 	Parameter *para = (Parameter *)(con);
 	INT id = para -> id;
 	INT *batch_h = para -> batch_h;
@@ -176,36 +131,54 @@ void* getBatchWithNewCorruption(void* con) {
 		if (rig > batchSize) rig = batchSize;
 	}
 	REAL prob = 500;
-	INT last = batchSize;
+	INT randomPicked = 0;
+	INT totalPicked = 0;
+
 	for (INT batch = lef; batch < rig; batch++) {
-		//define true example
-		//perform link prediction
-		//if predicted head is different from true head -> set negative sample
-		//else -> get new triple from batch and do the same procedure
-		bool correctHeadPredicted = true;
-		INT* predictedHead;
-		while(correctHeadPredicted) {
-			INT i = rand_max(id, trainTotal);
-			batch_h[batch] = trainList[i].h;
-			batch_t[batch] = trainList[i].t;
-			batch_r[batch] = trainList[i].r;
-			batch_y[batch] = 1;
-			last = batchSize;
-			printf("correctHeadpredicted: %d \n", correctHeadPredicted);
-			predictedHead = performLinkPredictionForCorruption(batch_t[batch], batch_r[batch]);
-			printf("PredictedHead: %d \n", *predictedHead);
-			if(*predictedHead != batch_h[batch]) correctHeadPredicted = false;
+		INT i = rand_max(id, trainTotal);
+		batch_h[batch] = trainList[i].h;
+		batch_t[batch] = trainList[i].t;
+		batch_r[batch] = trainList[i].r;
+		batch_y[batch] = 1;
+		INT last = batchSize;
+		totalPicked = totalPicked + 1;
+		//headMap = getHeadMap();
+		//tailMap = getTailMap();
+		for (INT times = 0; times < negRate; times ++) {
+			INT j = 0;
+			Triple negTriple;
+			if(trueNegativeSamplesFlag) {
+				if(headMap.find(batch_h[batch]) == headMap.end()) {
+					if(tailMap.find(batch_h[batch]) == tailMap.end()) {
+						if(headMap.find(batch_t[batch]) == headMap.end()) {
+							if(tailMap.find(batch_t[batch]) == tailMap.end()) {
+								j = rand_max(id, diffTotal);
+								negTriple = trueNegList[j];
+								randomPicked = randomPicked +1;
+							} else {
+								negTriple = tailMap.at(batch_t[batch]);
+							}
+						} else {
+							negTriple = headMap.at(batch_t[batch]);
+						}
+					} else {
+						negTriple = tailMap.at(batch_h[batch]);
+					}
+				} else {
+					negTriple = headMap.at(batch_h[batch]);
+
+				}
+				batch_h[batch + last] = negTriple.h;
+				batch_t[batch + last] = negTriple.t;
+				batch_r[batch + last] = negTriple.r;
+				batch_y[batch + last] = -1;
+				last += batchSize;
+			}
 		}
-
-		batch_h[batch + last] = *predictedHead;
-		batch_t[batch + last] = batch_t[batch];
-		batch_r[batch + last] = batch_r[batch];
-		batch_y[batch + last] = -1;
-
-		last += batchSize;
-
-		pthread_exit(NULL);
 	}
+	printf("totalPicked: %d", totalPicked);
+	printf("randomPicked: %d", randomPicked);
+	pthread_exit(NULL);
 }
 
 void* getNegativeBatch(void* con) {
@@ -220,6 +193,8 @@ void* getNegativeBatch(void* con) {
 	INT negRelRate = para -> negRelRate;
 	INT headBatchFlag = para -> headBatchFlag;
 	INT lef, rig;
+	//INT totalPicked = 0;
+	//INT randomPicked = 0;
 	if (batchSize % workThreads == 0) {
 		lef = id * (batchSize / workThreads);
 		rig = (id + 1) * (batchSize / workThreads);
@@ -230,8 +205,10 @@ void* getNegativeBatch(void* con) {
 	}
 	REAL prob = 500;
 	INT last = batchSize;
-	INT counter = 1;
+	//INT counter = 1;
 	for (INT batch = lef; batch < rig; batch++) {
+		//totalPicked = totalPicked + 1;
+		INT counter = 1;
 		bool headTailInNegSamples = false;
 		while(!headTailInNegSamples) {
 			INT i = rand_max(id, trainTotal);
@@ -241,7 +218,7 @@ void* getNegativeBatch(void* con) {
 			batch_y[batch] = 1;
 			last = batchSize;
 			counter += 1;
-			if(headOrTailInNegativeSample(batch_h[batch], batch_t[batch])) {
+			if(headOrTailInNegativeSample(batch_h[batch], batch_t[batch]) == true) {
 				headTailInNegSamples = true;
 			}
 			if(counter == batchSize) { //make sure a random value can be picked as well
@@ -259,6 +236,7 @@ void* getNegativeBatch(void* con) {
 							if(tailMap.find(batch_t[batch]) == tailMap.end()) {
 								INT j = rand_max(id, diffTotal);
 								negTriple = trueNegList[j];
+								//randomPicked = randomPicked +1;
 							} else {
 								negTriple = tailMap.at(batch_t[batch]);
 							}
@@ -277,12 +255,13 @@ void* getNegativeBatch(void* con) {
 				batch_t[batch + last] = negTriple.t;
 				batch_r[batch + last] = negTriple.r;
 				batch_y[batch + last] = -1;
-
 				last += batchSize;
 			}
 		}
-		pthread_exit(NULL);
 	}
+	//printf("totalPicked: %d\n", totalPicked);
+	//printf("randomPicked: %d\n", randomPicked);
+	pthread_exit(NULL);
 }
 
 void* getBatch(void* con) {
@@ -306,6 +285,7 @@ void* getBatch(void* con) {
 		if (rig > batchSize) rig = batchSize;
 	}
 	REAL prob = 500;
+
 	for (INT batch = lef; batch < rig; batch++) {
 		INT i = rand_max(id, trainTotal);
 		batch_h[batch] = trainList[i].h;
@@ -450,13 +430,11 @@ void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, INT batch
 			case 4: // if possible take matching head for head and matching tail for tail
 				pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
 				break;
-			case 5: //link prediction (python in c++)
-				//pthread_create(&pt[threads], NULL, getBatchWithNewCorruption, (void*)(para+threads));
-				Py_InitializeEx(0);
-				printf("hi");
-				//PyRun_SimpleString("print(1)");
-				Py_Finalize();
-				printf("do something");
+			case 5: //try to avoid overfitting
+				pthread_create(&pt[threads], NULL, getBatch, (void*)(para+threads));
+				break;
+			case 7: //test how often fallback is used
+				pthread_create(&pt[threads], NULL, getTestBatch, (void*)(para+threads));
 				break;
 			default:
 				break;
