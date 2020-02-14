@@ -176,8 +176,8 @@ void* getTestBatch(void* con) {
 			}
 		}
 	}
-	printf("totalPicked: %d", totalPicked);
-	printf("randomPicked: %d", randomPicked);
+	//printf("totalPicked: %d", totalPicked);
+	//printf("randomPicked: %d", randomPicked);
 	pthread_exit(NULL);
 }
 
